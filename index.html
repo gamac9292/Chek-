@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Operacional Querência - Gestão de Maquinários e Vistoria de Porão</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e3a8a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #15803d;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --border: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #334155;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Top Bar & Branding */
+        .top-bar {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo svg {
+            width: 42px;
+            height: 42px;
+            fill: #f59e0b;
+        }
+
+        .brand-title h1 {
+            font-size: 20px;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+
+        .brand-title p {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .doc-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Tabs Navigation */
+        .nav-tabs {
+            display: flex;
+            background: #e2e8f0;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--card);
+            color: var(--secondary);
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Grid Layouts */
+        .form-grid {
+          display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        /* Tables & Inspection Lists */
+        .section-header {
+            padding: 8px 12px;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            border-radius: 6px 6px 0 0;
+            margin-top: 12px;
+        }
+
+        .bg-impeditivo { background-color: var(--danger); }
+        .bg-indicador { background-color: var(--secondary); }
+        .bg-operador { background-color: var(--success); }
+
+        .check-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+
+        .check-table th {
+          background: #e2e8f0;
+            padding: 6px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+        }
+
+        .check-table td {
+            padding: 8px 6px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .check-table tr.nc-active {
+            background-color: #fef2f2 !important;
+            border-left: 4px solid var(--danger);
+        }
+
+        .radio-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .radio-options label {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Lights Specifier Field */
+        .light-detail-box {
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* Canvas Signature Box */
+        .signature-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sig-box {
+            flex: 1;
+            min-width: 260px;
+            background: #fafafa;
+            border: 1px dashed var(--border);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .sig-box canvas {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            touch-action: none;
+            width: 100%;
+            height: 120px;
+        }
+
+        .btn-clear {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        /* Camera & Photo Attachments */
+        .photo-upload-zone {
+            border: 2px dashed var(--secondary);
+            background: #eff6ff;
+            padding: 16px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .photo-preview {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .photo-thumb {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* Action Buttons Bar */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white;
+        }
+
+        .btn-success { background-color: var(--success); }
+        .btn-secondary { background-color: var(--secondary); }
+        .btn-warning { background-color: var(--warning); }
+        .btn-danger { background-color: var(--danger); }
+
+        /* Print Media Style */
+        @media print {
+            body { padding: 0; background: white; }
+            .nav-tabs, .action-bar, .btn-clear, .photo-upload-zone input { display: none !important; }
+            .tab-content { display: block !important; padding: 0; }
+            .app-container { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Header Corporativo -->
+    <div class="top-bar">
+        <div class="brand-logo">
+            <!-- Ícone Vetorial de Máquinas Pesadas -->
+            <svg viewBox="0 0 24 24">
+                <path d="M19,18A1,1 0 0,1 18,19A1,1 0 0,1 17,18A1,1 0 0,1 18,17A1,1 0 0,1 19,18M11,6H14V10H11V6M7,18A1,1 0 0,1 6,19A1,1 0 0,1 5,18A1,1 0 0,1 6,17A1,1 0 0,1 7,18M21,15V13D1.5,13 1.1,12.6 1.1,12V8C1.1,7.4 1.5,7 2,7H3V5A2,2 0 0,1 5,3H15A2,2 0 0,1 17,5V7H18A2,2 0 0,1 20,9V11.5L22,13.5V15H21M15,5H5V7H15V5Z"/>
+            </svg>
+            <div class="brand-title">
+                <h1>QUERÊNCIA</h1>
+                <p>GESTÃO DE FROTA & OPERAÇÕES PORTUÁRIAS</p>
+            </div>
+        </div>
+        <div class="doc-badge">
+            CÓD: <strong>R 140 Q</strong><br>
+            VERSÃO: <strong>05.2026</strong>
+        </div>
+    </div>
+
+    <!-- Navegação por Abas -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="openTab('tab-padrao')">📋 Checklist Diário (R 140 Q)</button>
+        <button class="tab-btn" onclick="openTab('tab-poraonavio')">🚢 Vistoria de Porão / Navio</button>
+        <button class="tab-btn" onclick="openTab('tab-oficina')">🔧 Máquinas em Manutenção</button>
+    </div>
+
+    <!-- ABA 1: CHECKLIST PADRÃO R 140 Q -->
+    <div id="tab-padrao" class="tab-content active">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Data & Hora</label>
+                <input type="datetime-local" id="padrao-data">
+            </div>
+            <div class="form-group">
+                <label>Turno Operacional</label>
+                <select id="padrao-turno">
+                    <option>07x13</option>
+                    <option>13x19</option>
+                    <option>19x01</option>
+                    <option>01x07</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Maquinário</label>
+                <select id="padrao-maquina">
+                    <option value="pa">Pá Carregadeira</option>
+                    <option value="escavadeira">Escavadeira Hidráulica</option>
+                    <option value="bobcat">Bobcat (Mini-Carregadeira)</option>
+                    <option value="empilhadeira">Empilhadeira</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Identificação / TAG Frota</label>
+                <input type="text" id="padrao-tag" placeholder="Ex: PAC-04 / ESC-02">
+            </div>
+            <div class="form-group">
+                <label>Horímetro Inicial</label>
+                <input type="number" id="padrao-horimetro" placeholder="0000.0">
+            </div>
+        </div>
+
+        <!-- 1. Impeditivos -->
+        <div class="section-header bg-impeditivo">1. Itens Impeditivos de Segurança (Bloqueio Automático)</div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th>Componente Crítico</th>
+                    <th style="width: 120px;">Status</th>
+                    <th style="width: 35%;">Observação Técnica</th>
+                </tr>
+            </thead>
+            <tbody id="list-impeditivos"></tbody>
+        </table>
+
+        <!-- 2. Indicadores -->
+        <div class="section-header bg-indicador">2. Itens Indicadores & Conservação</div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th>Componente Indicador</th>
+                    <th style="width: 120px;">Status</th>
+                    <th style="width: 35%;">Observação Técnica</th>
+                </tr>
+            </thead>
+            <tbody id="list-indicadores"></tbody>
+        </table>
+
+        <!-- 3. Validação & Assinaturas com Canvas -->
+        <div class="section-header bg-operador">3. Assinatura e Liberação Técnica</div>
+        <div class="signature-container">
+            <div class="sig-box">
+                <label><strong>Assinatura do Operador:</strong></label>
+                <canvas id="canvas-operador"></canvas>
+                <button class="btn-clear" onclick="limparCanvas('canvas-operador')">Limpar</button>
+            </div>
+            <div class="sig-box">
+                <label><strong>Visto / Rubrica do Líder de Turno:</strong></label>
+                <canvas id="canvas-lider"></canvas>
+                <button class="btn-clear" onclick="limparCanvas('canvas-lider')">Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 2: CHECKLIST DE PORÃO DE NAVIO -->
+    <div id="tab-poraonavio" class="tab-content">
+        <div class="form-grid">
+          <div class="form-group">
+                <label>Nome do Navio / Embarcação</label>
+                <input type="text" id="navio-nome" placeholder="Ex: MV Spar Capella">
+            </div>
+            <div class="form-group">
+                <label>Berço de Operação</label>
+                <input type="text" id="navio-berco" placeholder="Ex: Berço 102 / Cais Sul">
+            </div>
+            <div class="form-group">
+                <label>Porão de Entrada</label>
+                <input type="text" id="navio-porao" placeholder="Ex: Porão 03">
+            </div>
+            <div class="form-group">
+                <label>Maquinário Alocado no Porão</label>
+                <select id="navio-maquina">
+                    <option>Escavadeira Hidráulica</option>
+                    <option>Pá Carregadeira</option>
+                    <option>Bobcat (Mini-Carregadeira)</option>
+                    <option>Empilhadeira</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="photo-upload-zone" onclick="document.getElementById('input-foto-porao').click()">
+            <strong>📷 Clique aqui para Tirar Foto da Máquina no Porão</strong>
+            <p style="font-size: 11px; color: #64748b;">Anexe o estado do equipamento no momento da peação / içamento</p>
+            <input type="file" id="input-foto-porao" accept="image/*" capture="environment" style="display: none;" onchange="previewFotos(event)">
+            <div class="photo-preview" id="preview-container"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Observações do Porão e PONTOS DE IÇAMENTO / ALÇAS</label>
+            <textarea rows="3" placeholder="Registre se houve avaria no içamento, condições dos olhais de peação, etc..."></textarea>
+        </div>
+    </div>
+
+    <!-- ABA 3: MÁQUINAS EM MANUTENÇÃO / OFICINA -->
+    <div id="tab-oficina" class="tab-content">
+        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <h3>🛠️ Quadro de Máquinas em Manutenção</h3>
+            <button class="btn btn-warning" style="flex: initial;" onclick="adicionarNaOficina()">+ Add Máquina na Oficina</button>
+        </div>
+        <table class="check-table">
+            <thead>
+                <tr>
+                    <th>Equipamento / TAG</th>
+                    <th>Motivo da Entrada / Defeito</th>
+                    <th>Data Entrada</th>
+                    <th>Status Oficina</th>
+                </tr>
+            </thead>
+            <tbody id="lista-oficina">
+                <tr>
+                    <td><strong>Pá Carregadeira PAC-02</strong></td>
+                    <td>Vazamento no cilindro mestre de elevação hidráulica</td>
+                    <td>24/09/2026</td>
+                    <td><span style="color: var(--danger); font-weight: bold;">Aguardando Peça</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Barra Superior de Ações Finais -->
+    <div class="action-bar">
+        <button class="btn btn-success" onclick="salvarEValidar()">✅ Salvar / Finalizar</button>
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir Direto</button>
+        <button class="btn btn-warning" onclick="compartilharWhatsApp()">📱 Enviar no WhatsApp</button>
+    </div>
+</div>
+
+<script>
+    // Configurações de Listas
+    const impeditivosBase = [
+        "Freio de serviço", "Freio estacionário", "Condição / Pedais",
+        "Condição da direção / articulação", "Alarme de ré", "Condição das portas",
+        "Buzina", "Giroflex / Blue Spot", "Pisca alerta", "Luzes / Faróis Operacionais",
+        "Cinto de Segurança", "Extintor ABC e Extintor Bola no motor",
+        "Vazamento de Gás (Empilhadeira GLP)", "Vazamentos visíveis de fluídos (Óleo/Freio/Água)"
+    ];
+
+    const indicadoresBase = [
+        "Aparência geral do equipamento", "Vidros e espelhos retrovisores",
+        "Grades de proteção / ROPS / FOPS", "Palhetas de limpar vidro",
+        "Pneus / Esteiras", "Escada / Corrimões", "Ar-condicionado / Ventilador",
+        "Cones de Sinalização", "Torres, Cilindros e Mangueiras", "Condições dos garfos",
+        "Fumaça Preta no escapamento", "Nível de combustível e óleos",
+        "Para lamas e proteções do chassi", "Rádio de comunicação",
+        "Painéis e botão da cabine", "Proteção partes quentes do motor (Manta)",
+        "ADAPTADOR / IMPLEMENTOS: Pinos, caçamba, dentes e travas"
+    ];
+
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function renderCheckList() {
+        const tbImp = document.getElementById('list-impeditivos');
+        const tbInd = document.getElementById('list-indicadores');
+        tbImp.innerHTML = "";
+        tbInd.innerHTML = "";
+
+        impeditivosBase.forEach((item, idx) => {
+            const isLuzes = item.includes("Luzes / Faróis");
+            let extraHTML = isLuzes ? `
+                <div class="light-detail-box" id="box-luzes">
+                    <input type="text" placeholder="Especifique o lado (Ex: Farol dianteiro esquerdo queimado)" style="font-size:11px; margin-top:4px; width:100%;">
+                </div>` : '';
+
+            tbImp.innerHTML += `
+                <tr id="row-imp-${idx}">
+                    <td><strong>${item}</strong>${extraHTML}</td>
+                    <td align="center">
+                        <div class="radio-options">
+                            <label><input type="radio" name="imp_${idx}" value="C" checked onclick="checarStatusRow('row-imp-${idx}', 'C', ${isLuzes})"> C</label>
+                            <label><input type="radio" name="imp_${idx}" value="NC" onclick="checarStatusRow('row-imp-${idx}', 'NC', ${isLuzes})"> NC</label>
+                            <label><input type="radio" name="imp_${idx}" value="NA" onclick="checarStatusRow('row-imp-${idx}', 'NA', ${isLuzes})"> N/A</label>
+                        </div>
+                    </td>
+                    <td><input type="text" placeholder="Obs..." style="width:100%; border:1px solid #cbd5e1;"></td>
+                </tr>`;
+        });
+
+        indicadoresBase.forEach((item, idx) => {
+            tbInd.innerHTML += `
+                <tr>
+                    <td>${item}</td>
+                    <td align="center">
+                        <div class="radio-options">
+                            <label><input type="radio" name="ind_${idx}" value="C" checked> C</label>
+                            <label><input type="radio" name="ind_${idx}" value="NC"> NC</label>
+                            <label><input type="radio" name="ind_${idx}" value="NA"> N/A</label>
+                        </div>
+                    </td>
+                    <td><input type="text" placeholder="Obs..." style="width:100%; border:1px solid #cbd5e1;"></td>
+                </tr>`;
+        });
+    }
+
+    function checarStatusRow(rowId, val, isLuzes) {
+        const row = document.getElementById(rowId);
+        if (val === 'NC') {
+            row.classList.add('nc-active');
+            if (isLuzes) document.getElementById('box-luzes').style.display = 'block';
+        } else {
+            row.classList.remove('nc-active');
+            if (isLuzes) document.getElementById('box-luzes').style.display = 'none';
+        }
+    }
+
+    // Configuração do Canvas de Assinatura
+    function setupCanvas(id) {
+      const canvas = document.getElementById(id);
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); });
+        canvas.addEventListener('mousemove', (e) => { if(drawing) { ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); } });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); e.preventDefault(); });
+        canvas.addEventListener('touchmove', (e) => { if(drawing) { ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); } e.preventDefault(); });
+        canvas.addEventListener('touchend', () => drawing = false);
+    }
+
+    function limparCanvas(id) {
+        const canvas = document.getElementById(id);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function previewFotos(event) {
+        const container = document.getElementById('preview-container');
+        for (let file of event.target.files) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'photo-thumb';
+            container.appendChild(img);
+        }
+    }
+
+    function salvarEValidar() {
+        let bloqueado = false;
+        document.querySelectorAll('#list-impeditivos input[type="radio"]:checked').forEach(r => {
+            if (r.value === 'NC') bloqueado = true;
+        });
+
+        if (bloqueado) {
+            alert("🚨 EQUIPAMENTO REPROVADO E BLOQUEADO!\n\nExiste pelo menos um item impeditivo em 'NC'. A máquina deve passar por manutenção técnica antes do uso.");
+        } else {
+            alert("✅ CHECKLIST SALVO E MÁQUINA LIBERADA PARA OPERAÇÃO!");
+        }
+    }
+
+    function compartilharWhatsApp() {
+        const tag = document.getElementById('padrao-tag').value || 'MÁQUINA';
+        const text = `*CHECKLIST QUERÊNCIA R 140 Q*%0A*Equipamento:* ${tag}%0A*Data:* ${new Date().toLocaleDateString()}%0A*Status:* Checklist preenchido e assinado digitalmente.`;
+        window.open(`https://api.whatsapp.com/send?text=${text}`);
+    }
+
+    function adicionarNaOficina() {
+        const tag = prompt("Informe a TAG da Máquina:");
+        const motivo = prompt("Informe o Motivo/Defeito:");
+        if (tag && motivo) {
+            const tb = document.getElementById('lista-oficina');
+            tb.innerHTML += `<tr><td><strong>${tag}</strong></td><td>${motivo}</td><td>${new Date().toLocaleDateString()}</td><td><span style="color:var(--danger); font-weight:bold;">Em Manutenção</span></td></tr>`;
+        }
+    }
+
+    window.onload = () => {
+        renderCheckList();
+        setupCanvas('canvas-operador');
+        setupCanvas('canvas-lider');
+        document.getElementById('padrao-data').value = new Date().toISOString().slice(0,16);
+    };
+</script>
+
+</body>
+</html>
